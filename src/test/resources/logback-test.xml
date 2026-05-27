@@ -1,0 +1,23 @@
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Timestamp | Level | Logger (class short name) | Message -->
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %-40logger{40} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Suppress noisy framework logs — only show WARN and above from third-party libs -->
+    <logger name="io.github.bonigarcia"     level="WARN"/>
+    <logger name="org.openqa.selenium"      level="WARN"/>
+    <logger name="io.qameta.allure"         level="WARN"/>
+    <logger name="org.testng"               level="WARN"/>
+
+    <!-- Our test code logs at DEBUG and above -->
+    <logger name="com.outbound" level="DEBUG"/>
+
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

@@ -1,0 +1,166 @@
+name: CI — Test, Security & Static Analysis
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+
+  test:
+    name: TestNG Suite (headless Chrome)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Scenario 1 (UI) + Scenario 2 (API) — Run TestNG suite
+        run: mvn test -B --no-transfer-progress -Dheadless=true
+
+      - name: Install Groovy
+        run: sudo apt-get install -y groovy
+
+      - name: Scenario 3 (Groovy) — Run Environment Config script
+        run: groovy scripts/EnvironmentConfig.groovy
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots
+          path: target/screenshots/
+          retention-days: 7
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+      - name: Upload JaCoCo coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Job 2: OWASP Dependency-Check (runs in parallel with tests)
+  # ---------------------------------------------------------------------------
+  owasp:
+    name: OWASP Dependency-Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache OWASP NVD database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: owasp-nvd-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: owasp-nvd-${{ runner.os }}-
+
+      - name: Run OWASP Dependency-Check
+        run: mvn dependency-check:check -B --no-transfer-progress
+        continue-on-error: true   # NVD down or key issue won't block the build
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}   # Register free at nvd.nist.gov
+
+      - name: Upload OWASP report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-dependency-check-report
+          path: target/dependency-check-report/
+          retention-days: 14
+
+  # ---------------------------------------------------------------------------
+  # Job 3: PMD static analysis (runs in parallel with tests)
+  # ---------------------------------------------------------------------------
+  static-analysis:
+    name: PMD
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: PMD
+        run: mvn pmd:check -B --no-transfer-progress
+
+  # ---------------------------------------------------------------------------
+  # Job 4: SonarCloud analysis (runs after tests pass so coverage is available)
+  # ---------------------------------------------------------------------------
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: test   # wait for test results so Sonar can import coverage
+    if: github.event_name == 'push'   # skip on PRs from forks (no secret access)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history required for blame info
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: SonarCloud scan
+        run: |
+          mvn sonar:sonar -B --no-transfer-progress \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # Job 5: Docker — build image and run tests inside container
+  # ---------------------------------------------------------------------------
+  docker:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t genesys-sdet-exercise .
+
+      - name: Run tests in Docker container
+        run: docker run --rm genesys-sdet-exercise

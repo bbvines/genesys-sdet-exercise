@@ -1,0 +1,21 @@
+# Compiled output — rebuilt inside the container
+target/
+
+# Git history — not needed in image
+.git/
+.gitignore
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Local test reports & screenshots
+allure-results/
+allure-report/
+
+# Markdown docs
+*.md
+
+# OS files
+.DS_Store

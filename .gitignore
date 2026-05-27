@@ -1,0 +1,30 @@
+# Maven build output
+target/
+
+# Environment and secrets — never commit these
+.env
+.env.*
+*.pem
+*.p12
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+*.key
+
+# IDE files — no personal config in the repo
+.idea/
+*.iml
+.vscode/
+.eclipse/
+*.classpath
+*.project
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Allure results and local CLI tool (generated, not source)
+allure-results/
+allure-report/
+.allure/

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+    <!--
+        CVE-2026-33166 — Allure Report (allure-model, allure-testng)
+        This CVE affects Allure's report-serving web server feature.
+        We use Allure only as a test reporting library to generate static
+        HTML reports — we never run Allure as a web server in production.
+        Not applicable to this project.
+    -->
+    <suppress>
+        <notes>Allure used for test reports only, not as a web server. CVE-2026-33166 does not apply.</notes>
+        <packageUrl regex="true">pkg:maven/io\.qameta\.allure/allure-.*@.*</packageUrl>
+        <cve>CVE-2026-33166</cve>
+    </suppress>
+
+    <!--
+        CVE-2026-39883, CVE-2026-39882 — OpenTelemetry API
+        OpenTelemetry is a transitive dependency pulled in by WebDriverManager.
+        We do not use OpenTelemetry directly — no telemetry endpoints, no
+        instrumentation, no data export is configured in this project.
+        Not applicable to this project.
+    -->
+    <suppress>
+        <notes>OpenTelemetry is a transitive dep via WebDriverManager. Not used directly. CVE-2026-39883 does not apply.</notes>
+        <packageUrl regex="true">pkg:maven/io\.opentelemetry/.*@.*</packageUrl>
+        <cve>CVE-2026-39883</cve>
+    </suppress>
+
+    <suppress>
+        <notes>OpenTelemetry is a transitive dep via WebDriverManager. Not used directly. CVE-2026-39882 does not apply.</notes>
+        <packageUrl regex="true">pkg:maven/io\.opentelemetry/.*@.*</packageUrl>
+        <cve>CVE-2026-39882</cve>
+    </suppress>
+
+    <suppress>
+        <notes>OpenTelemetry semconv is a transitive dep via WebDriverManager. Not used directly. CVE-2026-39883 does not apply.</notes>
+        <packageUrl regex="true">pkg:maven/io\.opentelemetry\.semconv/.*@.*</packageUrl>
+        <cve>CVE-2026-39883</cve>
+    </suppress>
+
+    <suppress>
+        <notes>OpenTelemetry semconv is a transitive dep via WebDriverManager. Not used directly. CVE-2026-39882 does not apply.</notes>
+        <packageUrl regex="true">pkg:maven/io\.opentelemetry\.semconv/.*@.*</packageUrl>
+        <cve>CVE-2026-39882</cve>
+    </suppress>
+
+</suppressions>
