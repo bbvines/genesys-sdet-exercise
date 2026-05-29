@@ -52,6 +52,6 @@ RUN apt-get update -qq && \
 
 # WebDriverManager detects the installed google-chrome version and downloads
 # the matching ChromeDriver automatically (requires outbound internet access).
-# Runs Scenario 1 (UI) + Scenario 2 (API) via Maven, then Scenario 3 (Groovy).
+# Runs Scenario 2 (API) + Scenario 1 (UI) via Maven, then Scenario 3 (Groovy).
 CMD mvn test -B --no-transfer-progress -Dheadless=true -Dsurefire.useFile=false && \
     groovy scripts/EnvironmentConfig.groovy

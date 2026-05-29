@@ -3,6 +3,13 @@
 Automated test suite covering UI, API, and scripting scenarios against the
 [Genesys Cloud Developer Center](https://developer.genesys.cloud/).
 
+## Live Reports
+
+| Report | URL |
+|---|---|
+| **Allure Test Report** | https://bbvines.github.io/genesys-sdet-exercise/allure-report/ |
+| **SonarCloud Analysis** | https://sonarcloud.io/dashboard?id=genesys-sdet-exercise&branch=main |
+
 ---
 
 ## Quick Start
@@ -77,7 +84,6 @@ genesys-sdet-exercise/
 │   └── EnvironmentConfig.groovy            # Scenario 3 – Groovy config utility
 ├── .github/workflows/ci.yml                # GitHub Actions CI pipeline (5 jobs)
 ├── owasp-suppressions.xml                  # OWASP false-positive suppressions
-├── sonar-project.properties                # SonarScanner CLI config
 ├── pom.xml
 ├── testng.xml
 ├── Dockerfile
@@ -224,11 +230,11 @@ In GitHub Actions the execution order is defined in `.github/workflows/ci.yml`:
 
 | Order | Job | What runs |
 |-------|-----|-----------|
-| 1st (parallel) | **TestNG Suite** | Scenario 1 + Scenario 2 + Scenario 3 + JaCoCo |
-| 1st (parallel) | **OWASP** | Dependency CVE scan |
-| 1st (parallel) | **PMD** | Static analysis |
-| 1st (parallel) | **Docker** | Build image + run tests in container |
-| 2nd (after TestNG) | **SonarCloud** | Uploads coverage + analysis |
+| 1st | **TestNG Suite** | Scenario 1 + Scenario 2 + Scenario 3 + JaCoCo |
+| 2nd | **PMD** | Static analysis |
+| 3rd | **OWASP** | Dependency CVE scan |
+| 4th | **Docker** | Build image + run tests in container |
+| 5th | **SonarCloud** | Uploads coverage + analysis |
 
 No manual command needed — push to `main` and GitHub Actions runs everything automatically.
 
@@ -329,8 +335,7 @@ mvn sonar:sonar \
 
 The CI pipeline reads these automatically via `${{ secrets.SONAR_TOKEN }}`.
 
-The `sonar-project.properties` file in the repo root covers teams that prefer
-the standalone SonarScanner CLI over the Maven plugin.
+The project uses the Maven plugin (`mvn sonar:sonar`) for SonarCloud analysis — no standalone SonarScanner CLI needed.
 
 > **Note on Coverage:** This is a test-only project (no `src/main/java`).
 > JaCoCo measures coverage of infrastructure classes (`DriverFactory`,
